@@ -12,7 +12,6 @@ const registerUser = async (req, res) => {
     const wallet = ethers.Wallet.createRandom();
     const encryptionSecret = generateRandomSecret();
     const encryptedPrivateKey = encryptPrivateKey(wallet.privateKey, encryptionSecret);
-    const jwtSecret = generateRandomSecret(); // Generate random JWT secret
 
     try {
         const user = new User({
@@ -43,6 +42,7 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Use user.jwtSecret for JWT signing
     const token = jwt.sign({ id: user._id }, user.jwtSecret, { expiresIn: '1h' });
     res.json({ token });
 };
@@ -57,8 +57,7 @@ const rotateJwtSecret = async (userId) => {
 
     // Check if it's time to rotate the JWT secret
     if (shouldRotateKey(user.lastJwtRotation, rotationInterval)) {
-        const newJwtSecret = generateRandomSecret();
-        user.jwtSecret = newJwtSecret;
+        user.jwtSecret = generateRandomSecret(); // Directly assign the new secret
         user.lastJwtRotation = currentTimestamp;
         await user.save();
         console.log('JWT secret rotated successfully');
