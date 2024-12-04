@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                         // Target ECMAScript version
+    "module": "CommonJS",                    // Module system
+    "moduleResolution": "node",              // Resolving module
+    "outDir": "./dist",                      // Output directory for compiled JS
+    "esModuleInterop": true,                 // Allows default imports from CommonJS modules
+    "skipLibCheck": true,                    // Skip library checking for faster builds
+    "forceConsistentCasingInFileNames": true, // Enforce case consistency for file names
+    "strict": true                           // Enable strict type checking options
+  },
+  "include": ["index.ts", "models/**/*.ts", "controllers/**/*.ts", "routes/**/*.ts", "middleware/**/*.ts"],  // Include all TypeScript files from root and subfolders
+  "exclude": ["node_modules", "dist"]          // Exclude node_modules and dist folder (compiled files)
+}

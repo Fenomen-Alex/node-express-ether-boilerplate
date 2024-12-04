@@ -1,17 +1,21 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const { ethers } = require('ethers');
-const { generateRandomSecret, encryptPrivateKey } = require('../utils/utils');
-const dotenv = require('dotenv');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/User';
+import { ethers } from 'ethers';
+import crypto from 'crypto';
+import { Request, Response } from 'express';
+import dotenv from 'dotenv';
+import {encryptPrivateKey, generateRandomSecret} from "../utils/utils";
+
 dotenv.config();
 
 // Register User
-const registerUser = async (req, res) => {
+export const registerUser = async (req: Request, res: Response): Promise<void> => {
     const { username, email, password } = req.body;
     const wallet = ethers.Wallet.createRandom();
     const encryptionSecret = generateRandomSecret();
     const encryptedPrivateKey = encryptPrivateKey(wallet.privateKey, encryptionSecret);
+    const jwtSecret = generateRandomSecret();
 
     try {
         const user = new User({
@@ -19,11 +23,12 @@ const registerUser = async (req, res) => {
             email,
             password: await bcrypt.hash(password, 10),
             encryptedPrivateKey: encryptedPrivateKey.encryptedData,
-            encryptionSecret: encryptionSecret,
+            encryptionSecret,
             publicKey: wallet.address,
             iv: encryptedPrivateKey.iv,
             lastKeyRotation: new Date(),
             lastJwtRotation: new Date(),
+            jwtSecret,
         });
 
         await user.save();
@@ -34,34 +39,38 @@ const registerUser = async (req, res) => {
 };
 
 // Login User
-const loginUser = async (req, res) => {
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        res.status(401).json({ error: 'Invalid credentials' });
+        return;
     }
 
-    // Use user.jwtSecret for JWT signing
     const token = jwt.sign({ id: user._id }, user.jwtSecret, { expiresIn: '1h' });
     res.json({ token });
 };
 
 // JWT Secret Rotation
-const rotateJwtSecret = async (userId) => {
+export const rotateJwtSecret = async (userId: string): Promise<void> => {
     const user = await User.findById(userId);
     if (!user) return;
 
     const currentTimestamp = new Date();
-    const rotationInterval = parseInt(process.env.JWT_ROTATE_INTERVAL, 10); // Convert from hours
+    const rotationInterval = parseInt(process.env.JWT_ROTATE_INTERVAL!, 10);
 
-    // Check if it's time to rotate the JWT secret
     if (shouldRotateKey(user.lastJwtRotation, rotationInterval)) {
-        user.jwtSecret = generateRandomSecret(); // Directly assign the new secret
+        const newJwtSecret = generateRandomSecret();
+        user.jwtSecret = newJwtSecret;
         user.lastJwtRotation = currentTimestamp;
         await user.save();
         console.log('JWT secret rotated successfully');
     }
 };
 
-module.exports = { registerUser, loginUser, rotateJwtSecret };
+// Helper function to check if rotation is needed
+function shouldRotateKey(lastRotation: Date, interval: number): boolean {
+    const rotationInterval = interval * 60 * 60 * 1000; // Convert hours to milliseconds
+    return Date.now() - new Date(lastRotation).getTime() > rotationInterval;
+}

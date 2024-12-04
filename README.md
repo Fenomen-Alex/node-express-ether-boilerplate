@@ -1,3 +1,5 @@
+---
+
 # Ether Wallet Backend
 
 This project is a backend service for a secure Ethereum wallet. It includes features such as user registration, wallet management, encryption of private keys, and sending Ether. The system uses **random generation** for both encryption secrets and JWT tokens, with **key rotation** for enhanced security. It also uses **JWT-based authentication** to protect sensitive routes.
@@ -20,16 +22,10 @@ This project is a backend service for a secure Ethereum wallet. It includes feat
 3. [Configuration](#configuration)
 4. [Folder Structure](#folder-structure)
 5. [Environment Variables](#environment-variables)
-6. [Models and Controllers](#models-and-controllers)
-    - [User Model](#user-model)
-    - [Auth Controller](#auth-controller)
-    - [Wallet Controller](#wallet-controller)
-7. [Routes](#routes)
-8. [Server Setup](#server-setup)
-9. [Running the Application](#running-the-application)
-10. [API Endpoints](#api-endpoints)
-11. [Security Features](#security-features)
-12. [License](#license)
+6. [Running the Application](#running-the-application)
+7. [API Endpoints](#api-endpoints)
+8. [Security Features](#security-features)
+9. [License](#license)
 
 ---
 
@@ -43,6 +39,7 @@ This project is a backend service for a secure Ethereum wallet. It includes feat
 - **Crypto**: For encryption/decryption of private keys.
 - **Bcryptjs**: Password hashing.
 - **Dotenv**: For environment variable management.
+- **TypeScript**: For strong typing and enhanced developer experience.
 
 ---
 
@@ -64,6 +61,7 @@ Install the required dependencies:
 
 ```bash
 npm install express mongoose dotenv bcryptjs jsonwebtoken ethers crypto body-parser cors
+npm install typescript @types/node @types/express @types/bcryptjs @types/jsonwebtoken @types/cors @types/body-parser --save-dev
 ```
 
 ---
@@ -92,16 +90,16 @@ ether-wallet-backend/
 │
 ├── /backend/
 │   ├── /controllers/
-│   │   ├── authController.js
-│   │   └── walletController.js
+│   │   ├── authController.ts
+│   │   └── walletController.ts
 │   ├── /models/
-│   │   └── User.js
+│   │   └── User.ts
 │   ├── /routes/
-│   │   ├── authRoutes.js
-│   │   └── walletRoutes.js
+│   │   ├── authRoutes.ts
+│   │   └── walletRoutes.ts
 │   ├── /middleware/
-│   │   └── authMiddleware.js
-│   └── server.js
+│   │   └── authMiddleware.ts
+│   ├── server.ts
 ├── .env
 └── package.json
 ```
@@ -119,106 +117,6 @@ The `.env` file contains configuration for:
 
 ---
 
-## Models and Controllers
-
-### User Model
-
-The `User` model stores user data, including their encrypted private key, encryption secret, and JWT secret:
-
-```javascript
-const mongoose = require('mongoose');
-
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  encryptedPrivateKey: { type: String, required: true },
-  encryptionSecret: { type: String, required: true },
-  publicKey: { type: String, required: true },
-  iv: { type: String, required: true },
-  lastKeyRotation: { type: Date, required: true },
-  lastJwtRotation: { type: Date, required: true },
-});
-
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
-```
-
-### Auth Controller
-
-Handles user registration, login, and JWT secret rotation:
-
-```javascript
-// Generate random encryption secret, encrypt private key, and rotate JWT secret
-```
-
-### Wallet Controller
-
-Manages sending Ether and rotating encryption keys:
-
-```javascript
-// Encrypt private key, decrypt it, and send Ether from the wallet
-```
-
----
-
-## Routes
-
-### Auth Routes (`authRoutes.js`)
-
-Handles user registration and login:
-
-```javascript
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-```
-
-### Wallet Routes (`walletRoutes.js`)
-
-Handles Ether transactions, with JWT protection:
-
-```javascript
-router.post('/send', protect, sendEther);
-```
-
----
-
-## Server Setup
-
-Set up the Express server and connect to MongoDB:
-
-```javascript
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const authRoutes = require('./routes/authRoutes');
-const walletRoutes = require('./routes/walletRoutes');
-
-dotenv.config();
-
-const app = express();
-
-app.use(cors());
-app.use(bodyParser.json());
-
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
-
-app.use('/api/auth', authRoutes);
-app.use('/api/wallet', walletRoutes);
-
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
-```
-
----
-
 ## Running the Application
 
 1. **Ensure MongoDB is running** (locally or via MongoDB Atlas).
@@ -226,7 +124,7 @@ app.listen(port, () => {
 3. **Run the backend**:
 
 ```bash
-node server.js
+tsc && node dist/server.js
 ```
 
 This will start the backend server on `http://localhost:5000`.
@@ -247,6 +145,8 @@ This will start the backend server on `http://localhost:5000`.
 ---
 
 ## Security Features
+
+
 
 - **Random Secret Generation**: Both the encryption secret and JWT token secret are generated randomly for each user.
 - **Key Rotation**:
