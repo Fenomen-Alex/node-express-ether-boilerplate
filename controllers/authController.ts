@@ -1,9 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import { ethers } from 'ethers';
-import crypto from 'crypto';
-import { Request, Response } from 'express';
+import {ethers} from 'ethers';
+import {Request, Response} from 'express';
 import dotenv from 'dotenv';
 import {encryptPrivateKey, generateRandomSecret} from "../utils/utils";
 
@@ -61,8 +60,7 @@ export const rotateJwtSecret = async (userId: string): Promise<void> => {
     const rotationInterval = parseInt(process.env.JWT_ROTATE_INTERVAL!, 10);
 
     if (shouldRotateKey(user.lastJwtRotation, rotationInterval)) {
-        const newJwtSecret = generateRandomSecret();
-        user.jwtSecret = newJwtSecret;
+        user.jwtSecret = generateRandomSecret();
         user.lastJwtRotation = currentTimestamp;
         await user.save();
         console.log('JWT secret rotated successfully');

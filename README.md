@@ -160,6 +160,6 @@ This provides enhanced security for sensitive data and operations.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ---
